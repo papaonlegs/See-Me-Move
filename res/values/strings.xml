@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">See Me Move</string>
+    <string name="shakeCountString">Shake Count: </string>
+	<string name="notSupported">Not Supported</string>
+	<string name="x">X: </string>
+	<string name="y">Y: </string>
+	<string name="z">Z: </string>
+	<string name="seememove">See Me Move</string>
+	<string name="captureButtonOn">Capturing</string>
+    <string name="sampleRateText">Sample at:</string>
+    <string name="sample30">Slow</string>
+    <string name="sample60">Medium</string>
+    <string name="sample90">Fast</string>
+</resources>
