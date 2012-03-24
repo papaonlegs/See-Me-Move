@@ -161,4 +161,4 @@ public class SeeMeMoveTools
 		average = average/values.size();
 		this.avgValue = average;
 	}
-}
+}	
