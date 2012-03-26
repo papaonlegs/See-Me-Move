@@ -38,10 +38,6 @@ public class SeeMeMoveTools
 	private ArrayList<Float> yRawValues;
 	private ArrayList<Float> zRawValues;
 	
-	// Window of raw sensor values pre-interpolation 
-	private ArrayList<Float> rawWindowValues;
-	private ArrayList<Long> timevaluesWindow;
-	
 	// Interpolated sensor values 
 	private ArrayList<Float> xInterValues;
 	private ArrayList<Float> yInterValues;
@@ -116,19 +112,31 @@ public class SeeMeMoveTools
             new Thread(new Runnable() {
                 public void run() {	     	
                 	// TODO call signal processing methods
-            		timevaluesWindow = new ArrayList<Long>();
-            		timevaluesWindow = (ArrayList<Long>) timevalues.subList(rawWindowIndexs.get(rawWindowIndexs.size()-2), rawWindowIndexs.get(rawWindowIndexs.size()-1));
-                	try {               		
-                    	xInterValues.addAll(interpolateData((ArrayList<Float>)xRawValues.subList(rawWindowIndexs.get(rawWindowIndexs.size()-2), rawWindowIndexs.get(rawWindowIndexs.size()-1)), timevaluesWindow));
-                    	yInterValues.addAll(interpolateData((ArrayList<Float>)yRawValues.subList(rawWindowIndexs.get(rawWindowIndexs.size()-2), rawWindowIndexs.get(rawWindowIndexs.size()-1)), timevaluesWindow));
-						zInterValues.addAll(interpolateData((ArrayList<Float>)zRawValues.subList(rawWindowIndexs.get(rawWindowIndexs.size()-2), rawWindowIndexs.get(rawWindowIndexs.size()-1)), timevaluesWindow));
+            		//timevaluesWindow = new ArrayList<Long>(timevalues.subList(rawWindowIndexs.get(rawWindowIndexs.size()-2), rawWindowIndexs.get(rawWindowIndexs.size()-1)));
+                	ArrayList<Long> timevaluesWindow = new ArrayList<Long>();
+                	ArrayList<Float> rawXWindowValues = new ArrayList<Float>();
+                	ArrayList<Float> rawYWindowValues = new ArrayList<Float>();
+                	ArrayList<Float> rawZWindowValues = new ArrayList<Float>();
+                	
+                	for(int i = rawWindowIndexs.get(rawWindowIndexs.size()-2); i < rawWindowIndexs.get(rawWindowIndexs.size()-1) ; i ++) {
+                		timevaluesWindow.add(timevalues.get(i));
+                		rawXWindowValues.add(xRawValues.get(i));
+                		rawYWindowValues.add(yRawValues.get(i));
+                		rawZWindowValues.add(zRawValues.get(i));
+                	}
+            		try {               		
+                   
+            			xInterValues = interpolateData(rawXWindowValues, timevaluesWindow);
+                    	yInterValues = interpolateData(rawYWindowValues, timevaluesWindow);
+						zInterValues = interpolateData(rawZWindowValues, timevaluesWindow);
 					} catch (DataFormatException e) {e.printStackTrace();}
                 	
                 	// TODO server stuff
                 	String postMessage = Float.toString(avgValue);
                 	new ConnectToServer(postMessage);
                 	// FOR TESTING 
-                	listener.postResult(postMessage);
+                	//postToServer(postMessage);
+                	Log.i("Yep", "Yep");
                 }
             }).start(); 
             this.startTime = timevalue;
@@ -150,47 +158,37 @@ public class SeeMeMoveTools
 		return this.avgValue;
 	}
 	
-	public float getValue(long time) {
-		// Error Checking
-		if(time < timevalues.get(0))
-			throw new IndexOutOfBoundsException("Requested value is before start time");
-		if(time > timevalues.get(timevalues.size()-1))
-			throw new IndexOutOfBoundsException("Requested value is out of bounds");
-				
-		float retval = 0;
-		for(int i = rawWindowIndexs.get(rawWindowIndexs.size()-2) ; i < rawWindowIndexs.get(rawWindowIndexs.size()-1) ; i++) {
-			Long firsttimeval = timevalues.get(i);
-			Long secondtimeval = timevalues.get(i+1);
-			if(time >= firsttimeval && time <= secondtimeval) {
-				float firstval = this.rawWindowValues.get(i);
-				float secondval = this.rawWindowValues.get(i+1);
-				if(secondval >= firstval) {
-					retval = ((time-firsttimeval)*(secondval-firstval)/(secondtimeval-firsttimeval))+firstval;
-				}
-				else {
-					retval = ((secondtimeval-time)*((firstval-secondval)/(secondtimeval-firsttimeval)))+secondval;
-				}
-                return retval;
-			}
-		}
-		return retval;
-	}
-	
-	public ArrayList<Float> interpolateData(ArrayList<Float> rawData, ArrayList<Long> rawTime) throws DataFormatException {
+	public ArrayList<Float> interpolateData(List<Float> rawData, ArrayList<Long> rawTime) throws DataFormatException {
 		// Error Checking
 		if(sampleRate == 0)
 			throw new NullPointerException("No Sample rate set: Set in constructor or use method");
 		if(xRawValues.size() == 0)
 			throw new NullPointerException("No data in array to interpolate");
-		if((NANO_IN_SECOND/sampleRate) > (timevalues.get(rawWindowIndexs.get(rawWindowIndexs.size()-2))-timevalues.get(rawWindowIndexs.get(rawWindowIndexs.size()-2)+1)))
+		if((NANO_IN_SECOND/sampleRate) > ((timevalues.get(rawWindowIndexs.get(rawWindowIndexs.size()-2)+1))-(timevalues.get(rawWindowIndexs.get(rawWindowIndexs.size()-2)))))
 			throw new DataFormatException("Sampling rate is greater then data range");
 		
-		this.rawWindowValues = new ArrayList<Float>(rawData);
-		ArrayList<Float> interpolatedData = new ArrayList<Float>() ;		
+		ArrayList<Float> interpolatedData = new ArrayList<Float>(); // ArrayList to store new interpolated data				
 		long time = rawTime.get(0);		
 		
-		while(time < rawTime.get(rawTime.size()-1)) {
-			interpolatedData.add(getValue(time));
+		// Interpolate Data
+		while(time < rawTime.get(rawTime.size()-1)) {			
+			float retval = 0;
+			for(int i = 0 ; i < rawTime.size()-1 ; i++) {
+				Long firsttimeval = rawTime.get(i);
+				Long secondtimeval = rawTime.get(i+1);
+				if(time >= firsttimeval && time <= secondtimeval) {
+					float firstval = rawData.get(i);
+					float secondval = rawData.get(i+1);
+					if(secondval >= firstval) {
+						retval = ((time-firsttimeval)*(secondval-firstval)/(secondtimeval-firsttimeval))+firstval;
+					}
+					else {
+						retval = ((secondtimeval-time)*((firstval-secondval)/(secondtimeval-firsttimeval)))+secondval;
+					}
+					interpolatedData.add(retval);
+				}
+			}
+			interpolatedData.add(retval);		
 			time += (NANO_IN_SECOND/sampleRate);
 		}
 		// Smooth data if required 
@@ -218,5 +216,9 @@ public class SeeMeMoveTools
 		}
 		average = average/values.size();
 		this.avgValue = average;
+	}
+	
+	private void postToServer(String string) {
+    	listener.postResult(string);
 	}
 }	
