@@ -7,7 +7,7 @@ package com.meng.SeeMeMove;
 
 public interface AccelerometerListener {
 	 
-	public void onAccelerationChanged(float x, float y, float z, int samplingRate, float runningAverage);
+	public void onAccelerationChanged(float x, float y, float z);
 
 	public void postResult(String intensity);
 	

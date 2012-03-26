@@ -22,11 +22,8 @@ public class AccelerometerManager {
     private static SensorManager sensorManager;
     private static AccelerometerListener listener;
     
-	private static SeeMeMoveTools magnitude;
-    private static ArrayList<SeeMeMoveTools> magnitudes = new ArrayList<SeeMeMoveTools>();
-   
-    private static double TENSECONDSINNANO = 10000000000d;
-    private static int sampleRate = 140;
+	// Create SeeMeMoveTools object
+    private static SeeMeMoveTools SMMT;
 
     /** indicates whether or not Accelerometer Sensor is supported */
     private static Boolean supported;
@@ -93,8 +90,10 @@ public class AccelerometerManager {
             running = sensorManager.registerListener(sensorEventListener, sensor, SensorManager.SENSOR_DELAY_GAME);
             listener = accelerometerListener;
         }
-        magnitude = new SeeMeMoveTools(sampleRate);
-        magnitudes.clear();
+        SMMT = new SeeMeMoveTools();
+        // Set parameters of the SeeMeMoveTools object
+        SMMT.setSampleRate(100);
+        SMMT.setWindow(10000);
     }
  
     /**
@@ -116,43 +115,18 @@ public class AccelerometerManager {
      * The listener that listen to events from the accelerometer listener
      */
     private static SensorEventListener sensorEventListener = new SensorEventListener() {
-
-        float startTime = 0;
-        float timeDiff = 0;
-        float averg;
-    	
     	@Override
 		public void onAccuracyChanged(Sensor sensor, int accuracy) {}
  
         @Override
-		public void onSensorChanged(SensorEvent event) {                         	        	
-        	if(startTime == 0)
-        		startTime = event.timestamp;       	
-        	timeDiff = event.timestamp - startTime;
-        	      	
-        	if(timeDiff >= TENSECONDSINNANO) {	     
-    			try {
-    				magnitudes.add(magnitude);	
-    				magnitude.interpolateData(true);           				
-    			} catch (DataFormatException e) {}            			
-       		
-        		if(magnitudes.size() >= 1) {
-        			try {
-        				averg = magnitudes.get(magnitudes.size()-1).getAverage();
-        				callPost(Float.toString(averg));
-        			}catch (IllegalAccessException e) {e.printStackTrace();}
-        		}
-        		magnitude = new SeeMeMoveTools(sampleRate);
-        		startTime = event.timestamp;
-        	}
-        	// Add raw accelerometer value to SMM magnitude object 
-        	magnitude.addValue((float) Math.sqrt(Math.pow(event.values[0], 2) + Math.pow(event.values[1], 2) + Math.pow(event.values[2], 2)), event.timestamp);   	                              
+		public void onSensorChanged(SensorEvent event) {                         	        	  	
+        	// Add raw accelerometer value to SMM magnitude object
+        	SMMT.addValue(event.values[0], event.values[1], event.values[2], event.timestamp);
+        	 
+        	//magnitude.addValue((float) Math.sqrt(Math.pow(event.values[0], 2) + Math.pow(event.values[1], 2) + Math.pow(event.values[2], 2)), event.timestamp);   	                              
          
-        	listener.onAccelerationChanged(event.values[0], event.values[1], event.values[2], sampleRate, averg);
+        	listener.onAccelerationChanged(event.values[0], event.values[1], event.values[2]);
         }
     }; 
     
-    public static void callPost(String postMessage) {
-        listener.postResult(postMessage);
-    }
 }

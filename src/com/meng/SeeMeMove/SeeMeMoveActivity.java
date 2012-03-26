@@ -35,7 +35,10 @@ public class SeeMeMoveActivity extends Activity implements AccelerometerListener
 		//}
 		//else {
 			statusText.setText("Started Capturing");
-			captureState(0);
+			if(AccelerometerManager.isSupported()) {
+	            AccelerometerManager.startToListen(this);
+	        }
+			//captureState(0);
 		//}
     }
  
@@ -65,24 +68,16 @@ public class SeeMeMoveActivity extends Activity implements AccelerometerListener
      * postData callback
      */
     public void postResult(final String intensity) {        
-    	// create new worker thread to perform server post request
-        new Thread(new Runnable() {
-            public void run() {	     	
-            	new ConnectToServer(intensity);	
-            }
-        }).start();       
-        Toast.makeText(SeeMeMoveActivity.CONTEXT, "DATA SENT | Average: " + intensity, 4000).show();
+    	Toast.makeText(SeeMeMoveActivity.CONTEXT, "DATA SENT | Average: " + intensity, 4000).show();    
     }
       
 	/**
      * onAccelerationChanged callback
      */
-    public void onAccelerationChanged(float x, float y, float z, int samplingRate, float currentAverage) {
+    public void onAccelerationChanged(float x, float y, float z) {
         ((TextView) findViewById(R.id.statusText)).setText("X: " + String.valueOf(x) + 
         													"\nY: " + String.valueOf(y) + 
-        													"\nZ: " + String.valueOf(z) +         												
-        													"\nSAMPLE RATE: " + String.valueOf(samplingRate) +
-        													"\nRUNNING AVERAGE: " + String.valueOf(currentAverage));
+        													"\nZ: " + String.valueOf(z));
     }
 	
 	private boolean haveNetworkConnection() {
