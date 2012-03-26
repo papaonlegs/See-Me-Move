@@ -7,11 +7,8 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
  
 /**
  * @author Richard Flanagan
@@ -30,16 +27,15 @@ public class SeeMeMoveActivity extends Activity implements AccelerometerListener
         CONTEXT = this;
         statusText = (TextView) findViewById(R.id.statusText);
         
-		//if(!haveNetworkConnection()) {
+		if(!haveNetworkConnection()) {
 			statusText.setText("No Internet Connection");
-		//}
-		//else {
+		}
+		else {
 			statusText.setText("Started Capturing");
 			if(AccelerometerManager.isSupported()) {
 	            AccelerometerManager.startToListen(this);
 	        }
-			//captureState(0);
-		//}
+		}
     }
  
     protected void onResume() {
@@ -95,20 +91,5 @@ public class SeeMeMoveActivity extends Activity implements AccelerometerListener
 	                haveConnectedMobile = true;
 	    }
 	    return haveConnectedWifi || haveConnectedMobile;
-	}
-	
-	private void captureState(int flag) {
-		switch (flag) {
-		case 0:
-			if(AccelerometerManager.isSupported()) {
-	            AccelerometerManager.startToListen(this);
-	        }
-			break;
-		case 1:
-			if(AccelerometerManager.isListening()) {
-	            AccelerometerManager.stopListening();
-	        }
-	        break;
-		} 
 	}
 }
