@@ -8,11 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.DataFormatException;
 
-import android.app.Activity;
-import android.location.Criteria;
-import android.location.Location;
-import android.location.LocationManager;
+import android.content.Context;
 import android.os.Environment;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
 /**
@@ -63,15 +61,21 @@ public class SeeMeMoveTools
 	private ArrayList<Float> average;
 	private int previousAverageIndex = 0;
 	
+	// Write data to file
 	private FileWriter fWriter;
 	private BufferedWriter out;
 	private File root = Environment.getExternalStorageDirectory();
 	private File magFile;
+	
+	// Unique phone ID
+	private String phoneID;
+	TelephonyManager telephonyManager = (TelephonyManager) SeeMeMoveActivity.getContext().getSystemService(Context.TELEPHONY_SERVICE);
 		
     /**
      * Constructor
      */
 	public SeeMeMoveTools() {
+		// Instantiate global variables  
 		this.xRawValues = new ArrayList<Float>();
 		this.yRawValues = new ArrayList<Float>();
 		this.zRawValues = new ArrayList<Float>();
@@ -82,23 +86,26 @@ public class SeeMeMoveTools
 		this.timestampInter = new ArrayList<Long>();
 		this.RMS = new ArrayList<Float>();
 		this.magnitude = new ArrayList<Float>();
-		this.average = new ArrayList<Float>();
-		
+		this.average = new ArrayList<Float>();		
 		this.rawWindowIndexs = new ArrayList<Integer>();
-		this.rawWindowIndexs.add(0);
+		this.rawWindowIndexs.add(0); // Add starting index of zero to array containing index of each new window
 		
-		magFile = new File(root, "SeeMeMoveMagnitude.csv");
+		// Create output buffer to write file
 		try {
+			magFile = new File(root, "SeeMeMoveMagnitude.csv");
 			fWriter = new FileWriter(magFile);
+			out = new BufferedWriter(fWriter);
 		} catch (IOException e) {e.printStackTrace();}
-		out = new BufferedWriter(fWriter);
 		
+		// Set window to default size
 		windowInNano = NANO_IN_MILISECOND * window;
 	}
 	
 	public SeeMeMoveTools(int sampleRate) {
+		// Set parameter 
 		this.sampleRate = sampleRate;
 		
+		// Instantiate global variables 
 		this.xRawValues = new ArrayList<Float>();
 		this.yRawValues = new ArrayList<Float>();
 		this.zRawValues = new ArrayList<Float>();
@@ -111,16 +118,17 @@ public class SeeMeMoveTools
 		this.RMS = new ArrayList<Float>();
 		this.magnitude = new ArrayList<Float>();
 		this.average = new ArrayList<Float>();
-
 		this.rawWindowIndexs = new ArrayList<Integer>();
-		this.rawWindowIndexs.add(0);
+		this.rawWindowIndexs.add(0); // Add starting index of zero to array containing index of each new window
 		
-		magFile = new File(root, "SeeMeMoveMagnitude.csv");
+		// Create output buffer to write file
 		try {
+			magFile = new File(root, "SeeMeMoveMagnitude.csv");
 			fWriter = new FileWriter(magFile);
+			out = new BufferedWriter(fWriter);
 		} catch (IOException e) {e.printStackTrace();}
-		out = new BufferedWriter(fWriter);
 		
+		// Set window to default size
 		windowInNano = NANO_IN_MILISECOND * window;
 	}
 	
@@ -309,4 +317,23 @@ public class SeeMeMoveTools
 		this.previousAverageIndex = this.magnitude.size();
 	}
 	
+	private String getDeviceID(TelephonyManager phonyManager){
+		 
+		 String id = phonyManager.getDeviceId();
+		 if (id == null){
+		  id = "not available";
+		 }
+		 
+		 int phoneType = phonyManager.getPhoneType();
+		 switch(phoneType) {
+		 	case TelephonyManager.PHONE_TYPE_NONE:
+		 		return "NONE: " + id;	 
+		 	case TelephonyManager.PHONE_TYPE_GSM:
+		 		return "GSM: IMEI=" + id;		 
+		 	case TelephonyManager.PHONE_TYPE_CDMA:
+		 		return "CDMA: MEID/ESN=" + id;	 
+		 	default:
+		 		return "UNKNOWN: ID=" + id;
+		 }
+	}
 }	

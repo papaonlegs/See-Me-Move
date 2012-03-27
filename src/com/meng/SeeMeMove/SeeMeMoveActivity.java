@@ -13,6 +13,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.webkit.WebView;
 import android.widget.TextView;
 import android.widget.Toast;
  
@@ -23,10 +24,12 @@ import android.widget.Toast;
 public class SeeMeMoveActivity extends Activity implements AccelerometerListener {
  
     private static Context CONTEXT;
-	private static TextView statusText;
+	//private static TextView statusText;
 	
     private LocationManager locationManager;
 	private String provider;
+	
+	private WebView webView;
     
     /** Called when the activity is first created. */
     @Override
@@ -34,17 +37,20 @@ public class SeeMeMoveActivity extends Activity implements AccelerometerListener
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         CONTEXT = this;
-        statusText = (TextView) findViewById(R.id.statusText);
-        
+        //statusText = (TextView) findViewById(R.id.statusText);
 		if(!haveNetworkConnection()) {
-			statusText.setText("No Internet Connection");
+			//statusText.setText("No Internet Connection");
 		}
 		else {
-			statusText.setText("Started Capturing");
+			//statusText.setText("Started Capturing");
 			if(AccelerometerManager.accIsSupported()) {
 	            AccelerometerManager.startToListen(this);
 	        }
 		}
+		 
+		webView = (WebView) findViewById(R.id.webView1);
+		webView.getSettings().setJavaScriptEnabled(true);
+		webView.loadUrl("http://demo.papaonlegs.s1.goincloud.com/maptwit.html");
     }
     
     @Override
@@ -84,7 +90,7 @@ public class SeeMeMoveActivity extends Activity implements AccelerometerListener
      * onStopListening callback
      */
     public void onStopListening() {
-    	statusText.setText("Stopped Capturing");
+    	//statusText.setText("Stopped Capturing");
     }
  
     /**
@@ -98,9 +104,9 @@ public class SeeMeMoveActivity extends Activity implements AccelerometerListener
      * onAccelerationChanged callback
      */
     public void onAccelerationChanged(float x, float y, float z) {
-        ((TextView) findViewById(R.id.statusText)).setText("X: " + String.valueOf(x) + 
-        													"\nY: " + String.valueOf(y) + 
-        													"\nZ: " + String.valueOf(z));
+        //((TextView) findViewById(R.id.statusText)).setText("X: " + String.valueOf(x) + 
+        //													"\nY: " + String.valueOf(y) + 
+        //													"\nZ: " + String.valueOf(z));
     }
 	
 	private boolean haveNetworkConnection() {
