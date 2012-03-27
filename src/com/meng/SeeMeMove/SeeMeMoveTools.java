@@ -1,20 +1,22 @@
 package com.meng.SeeMeMove;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.DataFormatException;
+
+import android.os.Environment;
 import android.util.Log;
-import android.widget.Toast;
 
 /**
  * @author Richard Flanagan
  */
 
 public class SeeMeMoveTools 
-{
-    // FOR TESTING
-	private static AccelerometerListener listener;
-	
+{	
 	// Parameter Variables THESE MUST BE SET!!
 	private int sampleRate = 100; // desired sample rate which is set when instantiating the object or defined after
 	private int window = 10000; // in milliseconds default set to 10 seconds
@@ -53,7 +55,14 @@ public class SeeMeMoveTools
 	private ArrayList<Float> RMS;
 	private int previousRMSIndex = 0;
 	
-	private float avgValue = 0;
+	// Average
+	private ArrayList<Float> average;
+	private int previousAverageIndex = 0;
+	
+	private FileWriter fWriter;
+	private BufferedWriter out;
+	private File root = Environment.getExternalStorageDirectory();
+	private File magFile;
 		
     /**
      * Constructor
@@ -69,9 +78,16 @@ public class SeeMeMoveTools
 		this.timestampInter = new ArrayList<Long>();
 		this.RMS = new ArrayList<Float>();
 		this.magnitude = new ArrayList<Float>();
+		this.average = new ArrayList<Float>();
 		
 		this.rawWindowIndexs = new ArrayList<Integer>();
 		this.rawWindowIndexs.add(0);
+		
+		magFile = new File(root, "SeeMeMoveMagnitude.csv");
+		try {
+			fWriter = new FileWriter(magFile);
+		} catch (IOException e) {e.printStackTrace();}
+		out = new BufferedWriter(fWriter);
 		
 		windowInNano = NANO_IN_MILISECOND * window;
 	}
@@ -90,9 +106,16 @@ public class SeeMeMoveTools
 		this.timestampInter = new ArrayList<Long>();
 		this.RMS = new ArrayList<Float>();
 		this.magnitude = new ArrayList<Float>();
+		this.average = new ArrayList<Float>();
 
 		this.rawWindowIndexs = new ArrayList<Integer>();
 		this.rawWindowIndexs.add(0);
+		
+		magFile = new File(root, "SeeMeMoveMagnitude.csv");
+		try {
+			fWriter = new FileWriter(magFile);
+		} catch (IOException e) {e.printStackTrace();}
+		out = new BufferedWriter(fWriter);
 		
 		windowInNano = NANO_IN_MILISECOND * window;
 	}
@@ -116,10 +139,10 @@ public class SeeMeMoveTools
 		Log.i("Parameter Set", "Window Size: " + Long.toString(windowInNano) + " nanoseconds");
 	}
 	
-	public float getAverage() throws IllegalAccessException {
-		//if(values.isEmpty() == true)
-		//	throw new IllegalAccessException("No Values have been added to this object");
-		return this.avgValue;
+	public float getAverage(int index) throws IllegalAccessException {
+		if(magnitude.isEmpty() == true)
+			throw new IllegalAccessException("No Values have been added to this object");
+		return this.average.get(index);
 	}
 	
     /**
@@ -129,9 +152,7 @@ public class SeeMeMoveTools
      * @param timevalue
      *             corresponding time value for data
      */
-	public void addValue(float xValue, float yValue, float zValue, long timevalue) {
-		//TODO Add checks to see if all parameters have been set
-				
+	public void addValue(float xValue, float yValue, float zValue, long timevalue) {		
 		xRawValues.add(xValue);
 		yRawValues.add(yValue);
 		zRawValues.add(zValue);
@@ -171,12 +192,25 @@ public class SeeMeMoveTools
                 	Log.i("Array Size", "Interpolated Y: " + Integer.toString(yInterValues.size()));
                 	Log.i("Array Size", "Interpolated Z: " + Integer.toString(zInterValues.size()));
                 	
-            		calculateMagnitude();
-            		
+                	// More processing 
+            		calculateMagnitude();            		
             		calculateRMS();
-            		                	
-                	String postMessage = Float.toString(avgValue);
+            		calculateAverage();
+            		 
+            		// Post data to server
+                	String postMessage = Float.toString(average.get(average.size()-1));
                 	new ConnectToServer(postMessage);
+                	
+                	//Write Data to file
+            		try {
+            			for(int i = 0 ; i < magnitude.size() ; i++) {
+            				out.write(i +",");
+            				out.write(Float.toString(magnitude.get(i)));
+            				out.write("\n");
+            			}			
+            			out.flush();
+            			//out.close();
+            		}catch(IOException e){e.printStackTrace();}  
                 }
             }).start(); 
             this.startTime = timevalue;
@@ -254,20 +288,18 @@ public class SeeMeMoveTools
     	newRMS = (float) Math.sqrt((newRMS/(this.magnitude.size()-this.previousRMSIndex)));
 		  	                              
 		this.RMS.add(newRMS);
-		Log.i("Data", Float.toString(newRMS));
+		Log.i("Data", "RMS: " + Float.toString(newRMS));
 		this.previousRMSIndex = this.magnitude.size();
 	}
 	
-	private void calculateAverage(ArrayList<Float> values) {
+	private void calculateAverage() {
 		float average = 0;
-		for(int i = 0 ; i < values.size() ; i++) {
-			average += values.get(i);
+		for(int i = this.previousMagIndex ; i < this.magnitude.size() ; i++) {
+			average += this.magnitude.get(i);
 		}
-		average = average/values.size();
-		this.avgValue = average;
-	}
-	
-	private void postToServer(String string) {
-    	listener.postResult(string);
+		average = average/(this.magnitude.size()-this.previousAverageIndex);
+		this.average.add(average);
+		Log.i("Data", "Average Mag: " + Float.toString(average));
+		this.previousAverageIndex = this.magnitude.size();
 	}
 }	
