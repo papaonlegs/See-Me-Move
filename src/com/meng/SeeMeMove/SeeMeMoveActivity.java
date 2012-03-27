@@ -23,12 +23,9 @@ import android.widget.Toast;
 
 public class SeeMeMoveActivity extends Activity implements AccelerometerListener {
  
-    private static Context CONTEXT;
-	//private static TextView statusText;
-	
+    private static Context CONTEXT;	
     private LocationManager locationManager;
 	private String provider;
-	
 	private WebView webView;
     
     /** Called when the activity is first created. */
@@ -37,36 +34,32 @@ public class SeeMeMoveActivity extends Activity implements AccelerometerListener
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         CONTEXT = this;
-        //statusText = (TextView) findViewById(R.id.statusText);
 		if(!haveNetworkConnection()) {
-			//statusText.setText("No Internet Connection");
+			// TODO Validate Internet connection and pass message to user
 		}
 		else {
-			//statusText.setText("Started Capturing");
-			if(AccelerometerManager.accIsSupported()) {
+			if(AccelerometerManager.accIsSupported())
 	            AccelerometerManager.startToListen(this);
-	        }
-		}
-		 
+		}		 
 		webView = (WebView) findViewById(R.id.webView1);
 		webView.getSettings().setJavaScriptEnabled(true);
 		webView.loadUrl("http://demo.papaonlegs.s1.goincloud.com/maptwit.html");
     }
     
+    /** Called when the activity UI appears to user. */
     @Override
     public void onStart() {
     	super.onStart();
     	
+    	/** GPS Stuff */
     	Criteria criteria = new Criteria();
     	criteria.setAccuracy(Criteria.ACCURACY_FINE);
     	criteria.setBearingRequired(true);
     	criteria.setCostAllowed(true);
     	criteria.setPowerRequirement(Criteria.POWER_LOW);
     	criteria.setAltitudeRequired(false);
-    	
     	locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
     	locationManager.addGpsStatusListener(gpsStatusListener);
-    	
     	provider = locationManager.getBestProvider(criteria, true);
     	locationManager.requestLocationUpdates(provider, 2, 10000, AccelerometerManager.locationListener);    	
     }
@@ -89,14 +82,15 @@ public class SeeMeMoveActivity extends Activity implements AccelerometerListener
     /**
      * onStopListening callback
      */
-    public void onStopListening() {
-    	//statusText.setText("Stopped Capturing");
+    public void onStopAccelerometerListening() {
     }
  
     /**
      * postData callback
      */
-    public void postResult(final String intensity) {        
+    public void getSomeData(final String intensity) {        
+    	// Defunct USED FOR TESTING	
+    	// CAN BE USED TO PASS INFORMATION FROM THE SeeMeMoveTools OBJECT TO BE USED IN THE UI 
     	Toast.makeText(SeeMeMoveActivity.CONTEXT, "DATA SENT | Average: " + intensity, 4000).show();    
     }
       
@@ -104,17 +98,16 @@ public class SeeMeMoveActivity extends Activity implements AccelerometerListener
      * onAccelerationChanged callback
      */
     public void onAccelerationChanged(float x, float y, float z) {
-        //((TextView) findViewById(R.id.statusText)).setText("X: " + String.valueOf(x) + 
-        //													"\nY: " + String.valueOf(y) + 
-        //													"\nZ: " + String.valueOf(z));
+    	// Defunct USED FOR TESTING	
+    	// CAN BE USED TO PASS INFORMATION FROM THE SeeMeMoveTools OBJECT TO BE USED IN THE UI 
     }
 	
 	private boolean haveNetworkConnection() {
 	    boolean haveConnectedWifi = false;
 	    boolean haveConnectedMobile = false;
 
-	    ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-	    NetworkInfo[] netInfo = cm.getAllNetworkInfo();
+	    ConnectivityManager connectionManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+	    NetworkInfo[] netInfo = connectionManager.getAllNetworkInfo();
 	    for (NetworkInfo ni : netInfo) {
 	        if (ni.getTypeName().equalsIgnoreCase("WIFI"))
 	            if (ni.isConnected())
@@ -126,6 +119,7 @@ public class SeeMeMoveActivity extends Activity implements AccelerometerListener
 	    return haveConnectedWifi || haveConnectedMobile;
 	}
 	
+	/** GPS Stuff */
     GpsStatus.Listener gpsStatusListener = new GpsStatus.Listener() {		
 		@Override
 		public void onGpsStatusChanged(int event) {	

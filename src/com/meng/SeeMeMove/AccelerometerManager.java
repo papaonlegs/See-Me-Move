@@ -22,6 +22,7 @@ public class AccelerometerManager {
     private static SensorManager sensorManager;
     private static AccelerometerListener listener;
     
+    // GPS data store
     private static double lattitude;
     private static double longitude;
     private static boolean gpsFix = false;
@@ -47,11 +48,10 @@ public class AccelerometerManager {
     public static void stopListening() {
         running = false;
         try {
-            if (sensorManager != null && sensorEventListener != null) {
+            if (sensorManager != null && sensorEventListener != null)
                 sensorManager.unregisterListener(sensorEventListener);
-            }
         } catch (Exception e) {}
-        listener.onStopListening();
+        listener.onStopAccelerometerListening();
     }
  
     /**
@@ -94,6 +94,7 @@ public class AccelerometerManager {
             running = sensorManager.registerListener(sensorEventListener, sensor, SensorManager.SENSOR_DELAY_GAME);
             listener = accelerometerListener;
         }
+        // Instantiate a new SeeMeMoveTools object
         SMMT = new SeeMeMoveTools();
         // Set parameters of the SeeMeMoveTools object
         SMMT.setSampleRate(100);
@@ -121,13 +122,10 @@ public class AccelerometerManager {
     private static SensorEventListener sensorEventListener = new SensorEventListener() {
     	@Override
 		public void onAccuracyChanged(Sensor sensor, int accuracy) {}
- 
         @Override
 		public void onSensorChanged(SensorEvent event) {                         	        	  	
-        	// Add raw accelerometer value to SMM magnitude object
-        	SMMT.addValue(event.values[0], event.values[1], event.values[2], event.timestamp);
-        	
-        	listener.onAccelerationChanged(event.values[0], event.values[1], event.values[2]);
+        	// Add raw accelerometer value to SeeMeMoveTools object
+        	SMMT.addValue(event.values[0], event.values[1], event.values[2], event.timestamp);      	
         }
     }; 
     
@@ -141,16 +139,13 @@ public class AccelerometerManager {
     public static LocationListener locationListener = new LocationListener() {
     	@Override
     	public void onProviderDisabled(String provider) {		
-    	}
-    	
+    	}  	
     	@Override
     	public void onProviderEnabled(String provider) {		
-    	}
-    	
+    	}   	
     	@Override
     	public void onStatusChanged(String provider, int status, Bundle extras) {	 
-    	}
-    	
+    	}   	
     	@Override
     	public void onLocationChanged(Location location) {
     		gpsFix = true;
