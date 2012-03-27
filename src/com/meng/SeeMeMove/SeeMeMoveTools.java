@@ -224,9 +224,9 @@ public class SeeMeMoveTools
                 	//Write Data to file
             		try {
             			for(int i = 0 ; i < magnitude.size() ; i++) {
-            				out.write(i +",");
-            				out.write(Float.toString(magnitude.get(i)));
-            				out.write("\n");
+            				//out.write(i +",");
+            				//out.write(Float.toString(magnitude.get(i)));
+            				//out.write("\n");
             			}			
             			out.flush();
             			//out.close();

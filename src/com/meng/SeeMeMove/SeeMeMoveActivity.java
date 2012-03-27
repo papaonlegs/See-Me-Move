@@ -4,6 +4,7 @@ import com.meng.AccelerometerExample.R;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.location.Criteria;
 import android.location.GpsStatus;
 import android.location.Location;
@@ -43,6 +44,8 @@ public class SeeMeMoveActivity extends Activity implements AccelerometerListener
 		}		 
 		webView = (WebView) findViewById(R.id.webView1);
 		webView.getSettings().setJavaScriptEnabled(true);
+		webView.getSettings().setSupportZoom(true);
+		webView.setClickable(true);
 		webView.loadUrl("http://demo.papaonlegs.s1.goincloud.com/maptwit.html");
     }
     
@@ -74,6 +77,11 @@ public class SeeMeMoveActivity extends Activity implements AccelerometerListener
             AccelerometerManager.stopListening();
         }
     }
+    
+    @Override
+    public void onConfigurationChanged(Configuration newConfig){        
+        super.onConfigurationChanged(newConfig);
+    }
  
     public static Context getContext() {
         return CONTEXT;
@@ -82,8 +90,7 @@ public class SeeMeMoveActivity extends Activity implements AccelerometerListener
     /**
      * onStopListening callback
      */
-    public void onStopAccelerometerListening() {
-    }
+    public void onStopAccelerometerListening() { }
  
     /**
      * postData callback
