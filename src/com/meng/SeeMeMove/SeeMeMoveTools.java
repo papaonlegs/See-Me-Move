@@ -69,7 +69,7 @@ public class SeeMeMoveTools
 	
 	// Unique phone ID
 	private String phoneID;
-	TelephonyManager telephonyManager = (TelephonyManager) SeeMeMoveActivity.getContext().getSystemService(Context.TELEPHONY_SERVICE);
+	private static TelephonyManager telephonyManager = (TelephonyManager) SeeMeMoveActivity.getContext().getSystemService(Context.TELEPHONY_SERVICE);
 		
     /**
      * Constructor
@@ -99,6 +99,9 @@ public class SeeMeMoveTools
 		
 		// Set window to default size
 		windowInNano = NANO_IN_MILISECOND * window;
+		
+		// Get unique phone ID
+		this.phoneID = getDeviceID(telephonyManager);
 	}
 	
 	public SeeMeMoveTools(int sampleRate) {
@@ -130,6 +133,9 @@ public class SeeMeMoveTools
 		
 		// Set window to default size
 		windowInNano = NANO_IN_MILISECOND * window;
+		
+		// Get unique phone ID
+		this.phoneID = getDeviceID(telephonyManager);
 	}
 	
 	public void clear() {
@@ -323,17 +329,6 @@ public class SeeMeMoveTools
 		 if (id == null){
 		  id = "not available";
 		 }
-		 
-		 int phoneType = phonyManager.getPhoneType();
-		 switch(phoneType) {
-		 	case TelephonyManager.PHONE_TYPE_NONE:
-		 		return "NONE: " + id;	 
-		 	case TelephonyManager.PHONE_TYPE_GSM:
-		 		return "GSM: IMEI=" + id;		 
-		 	case TelephonyManager.PHONE_TYPE_CDMA:
-		 		return "CDMA: MEID/ESN=" + id;	 
-		 	default:
-		 		return "UNKNOWN: ID=" + id;
-		 }
+		 return id;
 	}
 }	
