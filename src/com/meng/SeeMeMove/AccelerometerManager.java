@@ -1,14 +1,14 @@
 package com.meng.SeeMeMove;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.DataFormatException;
-
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.os.Bundle;
 import android.util.Log;
  
 /**
@@ -21,6 +21,10 @@ public class AccelerometerManager {
     private static Sensor sensor;
     private static SensorManager sensorManager;
     private static AccelerometerListener listener;
+    
+    private static double lattitude;
+    private static double longitude;
+    private static boolean gpsFix = false;
     
 	// Create SeeMeMoveTools object
     private static SeeMeMoveTools SMMT;
@@ -53,7 +57,7 @@ public class AccelerometerManager {
     /**
      * Returns true if at least one Accelerometer sensor is available
      */
-    public static boolean isSupported() {
+    public static boolean accIsSupported() {
         if (supported == null) {
             if (SeeMeMoveActivity.getContext() != null) {
                 sensorManager = (SensorManager) SeeMeMoveActivity.getContext().getSystemService(Context.SENSOR_SERVICE);
@@ -122,11 +126,36 @@ public class AccelerometerManager {
 		public void onSensorChanged(SensorEvent event) {                         	        	  	
         	// Add raw accelerometer value to SMM magnitude object
         	SMMT.addValue(event.values[0], event.values[1], event.values[2], event.timestamp);
-        	 
-        	//magnitude.addValue((float) Math.sqrt(Math.pow(event.values[0], 2) + Math.pow(event.values[1], 2) + Math.pow(event.values[2], 2)), event.timestamp);   	                              
-         
+        	
         	listener.onAccelerationChanged(event.values[0], event.values[1], event.values[2]);
         }
     }; 
     
+    public static void updateLocation(Location location) {
+		lattitude = location.getLatitude();
+		Log.i("Data", "Latitude: " + Double.toString(lattitude));
+		longitude = location.getLongitude();
+		Log.i("Data", "Longitude: " + Double.toString(longitude));
+    }
+    
+    public static LocationListener locationListener = new LocationListener() {
+    	@Override
+    	public void onProviderDisabled(String provider) {		
+    	}
+    	
+    	@Override
+    	public void onProviderEnabled(String provider) {		
+    	}
+    	
+    	@Override
+    	public void onStatusChanged(String provider, int status, Bundle extras) {	 
+    	}
+    	
+    	@Override
+    	public void onLocationChanged(Location location) {
+    		gpsFix = true;
+    		updateLocation(location);
+    	}
+    };
+      
 }

@@ -8,6 +8,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.DataFormatException;
 
+import android.app.Activity;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Environment;
 import android.util.Log;
 
@@ -175,6 +179,7 @@ public class SeeMeMoveTools
                 	ArrayList<Float> rawYWindowValues = new ArrayList<Float>();
                 	ArrayList<Float> rawZWindowValues = new ArrayList<Float>();
                 	
+                	// Add correct window data to above 
                 	for(int i = rawWindowIndexs.get(rawWindowIndexs.size()-2); i < rawWindowIndexs.get(rawWindowIndexs.size()-1) ; i ++) {
                 		timevaluesWindow.add(timevalues.get(i));
                 		rawXWindowValues.add(xRawValues.get(i));
@@ -182,6 +187,7 @@ public class SeeMeMoveTools
                 		rawZWindowValues.add(zRawValues.get(i));
                 	}
                 	
+                	// Interpolate raw data to compensate for fluctuating sample rate  
             		try {               		                   
             			xInterValues.addAll(interpolateData(rawXWindowValues, timevaluesWindow));
                     	yInterValues.addAll(interpolateData(rawYWindowValues, timevaluesWindow));
@@ -229,7 +235,7 @@ public class SeeMeMoveTools
 		ArrayList<Float> interpolatedData = new ArrayList<Float>(); // ArrayList to store new interpolated data				
 		long time = rawTime.get(0);		
 		
-		// Interpolate Data
+		// Interpolate rawData
 		while(time < rawTime.get(rawTime.size()-1)) {			
 			float retval = 0;
 			// Loops through to find corresponding time in rawTime
@@ -302,4 +308,5 @@ public class SeeMeMoveTools
 		Log.i("Data", "Average Mag: " + Float.toString(average));
 		this.previousAverageIndex = this.magnitude.size();
 	}
+	
 }	
