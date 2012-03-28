@@ -1,34 +1,5 @@
 package com.meng.SeeMeMove;
 
-/*************************************************************************
- *  Compilation:  javac Complex.java
- *  Execution:    java Complex
- *
- *  Data type for complex numbers.
- *
- *  The data type is "immutable" so once you create and initialize
- *  a Complex object, you cannot change it. The "final" keyword
- *  when declaring re and im enforces this rule, making it a
- *  compile-time error to change the .re or .im fields after
- *  they've been initialized.
- *
- *  % java Complex
- *  a            = 5.0 + 6.0i
- *  b            = -3.0 + 4.0i
- *  Re(a)        = 5.0
- *  Im(a)        = 6.0
- *  b + a        = 2.0 + 10.0i
- *  a - b        = 8.0 + 2.0i
- *  a * b        = -39.0 + 2.0i
- *  b * a        = -39.0 + 2.0i
- *  a / b        = 0.36 - 1.52i
- *  (a / b) * b  = 5.0 + 6.0i
- *  conj(a)      = 5.0 - 6.0i
- *  |a|          = 7.810249675906654
- *  tan(a)       = -6.685231390246571E-6 + 1.0000103108981198i
- *
- *************************************************************************/
-
 public class Complex {
     private final double re;   // the real part
     private final double im;   // the imaginary part
@@ -48,8 +19,15 @@ public class Complex {
     }
 
     // return abs/modulus/magnitude and angle/phase/argument
-    public double abs()   { return Math.hypot(re, im); }  // Math.sqrt(re*re + im*im)
-    public double phase() { return Math.atan2(im, re); }  // between -pi and pi
+    public double abs() { 
+    	return Math.hypot(re, im);
+    	// Math.sqrt(re*re + im*im)
+    }  
+    
+    public double phase() { 
+    	return Math.atan2(im, re);
+    	// between -pi and pi
+    }  
 
     // return a new Complex object whose value is (this + b)
     public Complex plus(Complex b) {
@@ -82,7 +60,9 @@ public class Complex {
     }
 
     // return a new Complex object whose value is the conjugate of this
-    public Complex conjugate() {  return new Complex(re, -im); }
+    public Complex conjugate() {  
+    	return new Complex(re, -im); 
+    }
 
     // return a new Complex object whose value is the reciprocal of this
     public Complex reciprocal() {
@@ -91,8 +71,12 @@ public class Complex {
     }
 
     // return the real or imaginary part
-    public double re() { return re; }
-    public double im() { return im; }
+    public double re() { 
+    	return re; 
+    }
+    public double im() { 
+    	return im; 
+    }
 
     // return a / b
     public Complex divides(Complex b) {
@@ -120,8 +104,6 @@ public class Complex {
         return sin().divides(cos());
     }
     
-
-
     // a static version of plus
     public static Complex plus(Complex a, Complex b) {
         double real = a.re + b.re;
@@ -129,8 +111,6 @@ public class Complex {
         Complex sum = new Complex(real, imag);
         return sum;
     }
-
-
 
 //    // sample client for testing
 //    public static void main(String[] args) {

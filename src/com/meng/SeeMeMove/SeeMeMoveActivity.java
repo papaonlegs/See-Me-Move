@@ -14,7 +14,9 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.view.KeyEvent;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.TextView;
 import android.widget.Toast;
  
@@ -43,11 +45,21 @@ public class SeeMeMoveActivity extends Activity implements AccelerometerListener
 	            AccelerometerManager.startToListen(this);
 		}		 
 		webView = (WebView) findViewById(R.id.webView1);
+		webView.setWebViewClient(new twitWebViewClient());
 		webView.getSettings().setJavaScriptEnabled(true);
 		webView.getSettings().setSupportZoom(true);
-		webView.setClickable(true);
-		webView.loadUrl("http://demo.papaonlegs.s1.goincloud.com/maptwit.html");
+		webView.loadUrl("http://demo.papaonlegs.s1.goincloud.com/seememove.html");
     }
+    
+    /** Allow user to use back key*/
+//    public boolean onKeyDown(int keyCode, KeyEvent event){
+//    	
+//    	if((keyCode == KeyEvent.KEYCODE_BACK) && webView.canGoBack()){
+//    		webView.goBack();
+//    		return true;
+//    	}
+//    	return super.onKeyDown(keyCode, event);
+//    }
     
     /** Called when the activity UI appears to user. */
     @Override
@@ -132,4 +144,12 @@ public class SeeMeMoveActivity extends Activity implements AccelerometerListener
 		public void onGpsStatusChanged(int event) {	
 		}
 	}; 
+	
+	private class twitWebViewClient extends WebViewClient {
+		@Override
+		public boolean shouldOverrideUrlLoading(WebView view, String url) {
+			view.loadUrl(url);
+			return true;
+		}
+	}
 }

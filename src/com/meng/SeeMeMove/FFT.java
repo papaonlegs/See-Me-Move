@@ -1,7 +1,6 @@
 package com.meng.SeeMeMove;
 
 public class FFT {
-
     // compute the FFT of x[], assuming its length is a power of 2
     public static Complex[] fft(Complex[] x) {
         int N = x.length;
@@ -54,14 +53,11 @@ public class FFT {
         for (int i = 0; i < N; i++) {
             y[i] = y[i].conjugate();
         }
-
         // divide by N
         for (int i = 0; i < N; i++) {
             y[i] = y[i].times(1.0 / N);
         }
-
         return y;
-
     }
 
     // compute the circular convolution of x and y
@@ -82,11 +78,9 @@ public class FFT {
         for (int i = 0; i < N; i++) {
             c[i] = a[i].times(b[i]);
         }
-
         // compute inverse FFT
         return ifft(c);
     }
-
 
     // compute the linear convolution of x and y
     public static Complex[] convolve(Complex[] x, Complex[] y) {

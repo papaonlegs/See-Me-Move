@@ -97,6 +97,7 @@ public class AccelerometerManager {
         // Instantiate a new SeeMeMoveTools object
         SMMT = new SeeMeMoveTools();
         // Set parameters of the SeeMeMoveTools object
+        SMMT.setSmooth(true);
         SMMT.setSampleRate(100);
         SMMT.setWindow(10000);
     }
@@ -131,9 +132,8 @@ public class AccelerometerManager {
     
     public static void updateLocation(Location location) {
 		lattitude = location.getLatitude();
-		Log.i("Data", "Latitude: " + Double.toString(lattitude));
 		longitude = location.getLongitude();
-		Log.i("Data", "Longitude: " + Double.toString(longitude));
+		SMMT.setGPS(location.getLatitude(), location.getLongitude());
     }
     
     public static LocationListener locationListener = new LocationListener() {
@@ -149,7 +149,7 @@ public class AccelerometerManager {
     	@Override
     	public void onLocationChanged(Location location) {
     		gpsFix = true;
-    		updateLocation(location);
+    		updateLocation(location);    	
     	}
     };
       

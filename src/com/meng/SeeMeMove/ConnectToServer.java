@@ -18,13 +18,13 @@ public class ConnectToServer {
     private URL url; 
     private String param, response;
     
-	public ConnectToServer(final String intensity) {
+	public ConnectToServer(final String id, final String rms, final String latt, final String longg) {
     	try {
 			url = new URL("http://webprojects.eecs.qmul.ac.uk/ec09240/seememove/addentry.php");
 		} catch (MalformedURLException e) {e.printStackTrace();}
 
 		try {
-			param = "intensity=" + URLEncoder.encode(intensity, "UTF-8");
+			param = "id=" + URLEncoder.encode(id, "UTF-8") + "&rms=" + URLEncoder.encode(rms, "UTF-8") + "&lat=" + URLEncoder.encode(latt, "UTF-8") + "&longg=" + URLEncoder.encode(longg, "UTF-8");
 		} catch (UnsupportedEncodingException e1) {e1.printStackTrace();}
     	
     	try {

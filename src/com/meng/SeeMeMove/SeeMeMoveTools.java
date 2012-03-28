@@ -70,6 +70,10 @@ public class SeeMeMoveTools
 	// Unique phone ID
 	private String phoneID;
 	private static TelephonyManager telephonyManager = (TelephonyManager) SeeMeMoveActivity.getContext().getSystemService(Context.TELEPHONY_SERVICE);
+	
+	// GPS 
+	private double longitude;
+	private double lattitude; 
 		
     /**
      * Constructor
@@ -157,6 +161,25 @@ public class SeeMeMoveTools
 		Log.i("Parameter Set", "Window Size: " + Long.toString(windowInNano) + " nanoseconds");
 	}
 	
+	public void setSmooth(boolean smooth) {
+		this.smooth = smooth;
+		Log.i("Data", "Smooth: " + Boolean.toString(smooth));
+	}
+	
+	public void setSmooth(boolean smooth, int order) {
+		this.smooth = smooth;
+		Log.i("Data", "Smooth: " + Boolean.toString(smooth));
+		this.smoothOrder = order;
+		Log.i("Data", "Filter Order: " + Integer.toString(order));
+	}
+	
+	public void setGPS(double latt, double longg) {
+		this.lattitude = latt;
+		Log.i("Data", "Latitude: " + Double.toString(lattitude));
+		this.longitude = longg;
+		Log.i("Data", "Longitude: " + Double.toString(longitude));
+	}
+	
 	public float getAverage(int index) throws IllegalAccessException {
 		if(magnitude.isEmpty() == true)
 			throw new IllegalAccessException("No Values have been added to this object");
@@ -164,25 +187,32 @@ public class SeeMeMoveTools
 	}
 	
     /**
-     * Add value with corresponding timestamp
-     * @param value
-     *             uninterpolated data value
+     * Add raw accelerometer values with corresponding timestamp to SeeMeMoveTools object
+     * @param xValue
+     *             raw x-axis accelerometer data
+     * @param yValue
+     *             raw y-axis accelerometer data
+     * @param zValue
+     *             raw z-axis accelerometer data
      * @param timevalue
-     *             corresponding time value for data
+     *             accelerometer event timestamp in milliseconds       
      */
 	public void addValue(float xValue, float yValue, float zValue, long timevalue) {		
+		// Adds input data to corresponding global variables 
 		xRawValues.add(xValue);
 		yRawValues.add(yValue);
 		zRawValues.add(zValue);
 		timevalues.add(timevalue);
 		
+		// Checks to see if 
     	if(this.startTime == 0)
     		this.startTime = timevalue;       	
+    	// Calculate time difference between current input and last input 
     	this.timeDiff = timevalue - this.startTime;
     	
     	if(this.timeDiff >= windowInNano) {	 
     		rawWindowIndexs.add(xRawValues.size());
-    		Log.i("Data", "Window Index: " + Integer.toString(rawWindowIndexs.get(rawWindowIndexs.size()-1)));
+    		Log.i("Data", "Raw Window Size: " + Integer.toString((rawWindowIndexs.get(rawWindowIndexs.size()-1))-(rawWindowIndexs.get(rawWindowIndexs.size()-2))));
             
     		// Create a new worker thread so as not to block the UI thread
     		new Thread(new Runnable() {
@@ -217,9 +247,19 @@ public class SeeMeMoveTools
             		calculateRMS();
             		calculateAverage();
             		 
-            		// Post data to server
-                	String postMessage = Float.toString(average.get(average.size()-1));
-                	new ConnectToServer(postMessage);
+            		// Error checking
+            		try {
+	            		if(phoneID == null)
+	            			throw new DataFormatException("Phone ID not found");
+	            		if(RMS.get(RMS.size()-1) == 0f)
+	            			throw new DataFormatException("Phone ID not found");
+            		} catch (DataFormatException e){e.printStackTrace();} 
+            		
+            		// Post data to server             
+            		String rms = Float.toString(RMS.get(RMS.size()-1));
+                	String latt = Double.toString(lattitude);
+                	String longg = Double.toString(longitude);
+                	new ConnectToServer(phoneID, rms, latt, longg);
                 	
                 	//Write Data to file
             		try {
@@ -251,33 +291,31 @@ public class SeeMeMoveTools
 		
 		// Interpolate rawData
 		while(time < rawTime.get(rawTime.size()-1)) {			
-			float retval = 0;
+			float interValue = 0;
 			// Loops through to find corresponding time in rawTime
 			find:
 				for(int i = 0 ; i < rawTime.size()-1 ; i++) {
-					long firsttimeval = rawTime.get(i);
-					long secondtimeval = rawTime.get(i+1);
-					// When a match had been found
-					if(time >= firsttimeval && time <= secondtimeval) {
-						float firstval = rawData.get(i);
-						float secondval = rawData.get(i+1);
-						if(secondval >= firstval) {
-							retval = ((time-firsttimeval)*(secondval-firstval)/(secondtimeval-firsttimeval))+firstval;
+					long firstTimeValue = rawTime.get(i);
+					long secondTimeValue = rawTime.get(i+1);
+					if(time >= firstTimeValue && time <= secondTimeValue) {
+						float firstValue = rawData.get(i);
+						float secondValue = rawData.get(i+1);
+						if(secondValue >= firstValue) {
+							interValue = ((time-firstTimeValue)*(secondValue-firstValue)/(secondTimeValue-firstTimeValue))+firstValue;
 						}
 						else {
-							retval = ((secondtimeval-time)*((firstval-secondval)/(secondtimeval-firsttimeval)))+secondval;
+							interValue = ((secondTimeValue-time)*((firstValue-secondValue)/(secondTimeValue-firstTimeValue)))+secondValue;
 						}
-						interpolatedData.add(retval);
+						interpolatedData.add(interValue);
 						break find;
 					}
 				}		
 			time += (NANO_IN_SECOND/sampleRate);
-			//interpolatedData.add(retval);
 		}
-		// Smooth data if required 
+		// Smooth data
 		if(smooth == true)
 			interpolatedData = lowPassFilter(interpolatedData);
-		// Return Data
+		// Return interpolated data
 		return interpolatedData;
 	}
 	
@@ -323,12 +361,12 @@ public class SeeMeMoveTools
 		this.previousAverageIndex = this.magnitude.size();
 	}
 	
-	private String getDeviceID(TelephonyManager phonyManager){
-		 
-		 String id = phonyManager.getDeviceId();
-		 if (id == null){
-		  id = "not available";
-		 }
-		 return id;
+	private String getDeviceID(TelephonyManager phonyManager){		 
+		String id = phonyManager.getDeviceId();
+		if (id == null){
+			id = "not available";
+		}
+		Log.i("Data", "Phone ID: " + id);
+		return id;	
 	}
 }	
