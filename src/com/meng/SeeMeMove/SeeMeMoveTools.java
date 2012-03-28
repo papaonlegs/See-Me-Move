@@ -61,6 +61,10 @@ public class SeeMeMoveTools
 	private ArrayList<Float> average;
 	private int previousAverageIndex = 0;
 	
+	// FFT
+	private ArrayList<ArrayList<Double>> fftBins;
+	private static int fftStartIndex = 0;
+	
 	// Write data to file
 	private FileWriter fWriter;
 	private BufferedWriter out;
@@ -90,7 +94,8 @@ public class SeeMeMoveTools
 		this.timestampInter = new ArrayList<Long>();
 		this.RMS = new ArrayList<Float>();
 		this.magnitude = new ArrayList<Float>();
-		this.average = new ArrayList<Float>();		
+		this.average = new ArrayList<Float>();	
+		this.fftBins = new ArrayList<ArrayList<Double>>();	
 		this.rawWindowIndexs = new ArrayList<Integer>();
 		this.rawWindowIndexs.add(0); // Add starting index of zero to array containing index of each new window
 		
@@ -125,6 +130,7 @@ public class SeeMeMoveTools
 		this.RMS = new ArrayList<Float>();
 		this.magnitude = new ArrayList<Float>();
 		this.average = new ArrayList<Float>();
+		this.fftBins = new ArrayList<ArrayList<Double>>();	
 		this.rawWindowIndexs = new ArrayList<Integer>();
 		this.rawWindowIndexs.add(0); // Add starting index of zero to array containing index of each new window
 		
@@ -246,8 +252,9 @@ public class SeeMeMoveTools
             		calculateMagnitude();            		
             		calculateRMS();
             		calculateAverage();
-            		 
-            		// Error checking
+            		calculateFFT();
+            		
+            		// Pre-posting error checking
             		try {
 	            		if(phoneID == null)
 	            			throw new DataFormatException("Phone ID not found");
@@ -263,10 +270,10 @@ public class SeeMeMoveTools
                 	
                 	//Write Data to file
             		try {
-            			for(int i = 0 ; i < magnitude.size() ; i++) {
-            				//out.write(i +",");
-            				//out.write(Float.toString(magnitude.get(i)));
-            				//out.write("\n");
+            			for(int i = 0 ; i < fftBins.get(fftBins.size()-1).size() ; i++) {
+            				out.write(i +",");
+            				out.write(Double.toString(fftBins.get(fftBins.size()-1).get(i)));
+            				out.write("\n");
             			}			
             			out.flush();
             			//out.close();
@@ -348,6 +355,25 @@ public class SeeMeMoveTools
 		this.RMS.add(newRMS);
 		Log.i("Data", "RMS: " + Float.toString(newRMS));
 		this.previousRMSIndex = this.magnitude.size();
+	}
+	
+	private void calculateFFT() {
+		Complex[] x = new Complex[512];
+
+        for (int i = 0 ; i < 512 ; i++) {
+        	x[i] = new Complex((double)magnitude.get(i+fftStartIndex), 0);
+        }
+       
+        Complex[] y = FFT.fft(x);
+        ArrayList<Double> bins = new ArrayList<Double>();
+        
+        for (int i = 0 ; i < y.length ; i++) {
+        	bins.add(y[i].abs());
+        }       
+        Log.i("Array Size", "Bin Number: " + bins.size());
+        fftBins.add(bins);
+        
+        fftStartIndex = (fftStartIndex + 512);
 	}
 	
 	private void calculateAverage() {
